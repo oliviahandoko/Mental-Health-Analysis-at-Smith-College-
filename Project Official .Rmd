@@ -1,0 +1,109 @@
+---
+title: "Olivia's Project"
+author: "Olivia Handoko"
+date: "Today"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(knitr)
+library(oilabs)
+library(effsize)
+library(mosaic)
+library(datasets)
+```
+
+```{r}
+data(olivia_project.csv)
+```
+
+
+## Research Question 
+
+For this project, I am interested in whether highschool type affects depression in students at a school like Smith (i.e who experiences more depression? students from public highschool or students from private highschools? Is there a difference?) As someone who came from a charter/public high school, I sometimes feel unprepared in a college like Smith. The feeling of performing below most depresses me because I feel like I dont belong. Perhaps, studying the results of depression in students here based on previous education can help in unerstanding whether highschool type affects a student's depression. My predictor variable is "highschool type" and is discrete with two levels. My outcome variable is "depression". 
+
+##The Data 
+Data saved as olivia_project 
+```{r}
+olivia_project_ <- read_csv("~/Documents/PSY 201/Project Folder /olivia_project .csv")
+```
+
+Variable types within data 
+```{r}
+glimpse (olivia_project_)
+```
+
+
+## Histograms 
+
+```{r}
+ggplot(data = olivia_project_, aes(x = depression)) + 
+  geom_histogram(binwidth = .20, color = "white", fill = "orange") +
+    facet_wrap(~high_school_type, ncol = 2.5) +
+    labs(x = "depression", y = "frequency", 
+    title = "Depression (Private vs Public)")
+```
+
+The depression data for both private and public highschool seem to be the same, and positively skewed. However, there seems to be outliers for private more so than in public. The mean depression frequency looks to be highest for public than it does for private, but the spread seems to be the same for the two highschool types. 
+
+##Summary Statistics 
+Table 1: Summary statistics of both highschool types' depression frequency 
+```{r}
+olivia_project_ %>% 
+  group_by (high_school_type) %>% 
+  summarize(mean_depression = mean(depression),
+            sd_depression = sd(depression),
+            min_depression = min(depression),
+            max_depression = max(depression),
+            n = n())
+```
+Because both my data is positively skewed, reporting the mean and standard deviation is necessary. Depression score was greater for student respondents from public highschools (M = .83, SD = .54) than those from private highschools (M = .70, SD = .48). In my data, the sample consists of 194 students from private school and 224 students from public school. 
+
+
+## Exploratory Data Visualization 
+
+I am using a bar chart to showcase my data's mean with their errors (shown with error bars). The bar chart is information calculated using my sample size, standard deviation, standard error of both public and private and the upper and lower bounds of each predictor variable's 95% confidence interval. 
+The data is saved under "olivia_project"
+```{r}
+olivia_project <- 
+olivia_project_ %>% 
+    group_by (high_school_type) %>% 
+    summarize(mean_depression = mean(depression),
+            sd_depression = sd(depression),
+            sample_size = n(),
+            se = sd_depression/sqrt(n()),
+            upper_ci = mean_depression + (se * 1.96), 
+            lower_ci = mean_depression - (se * 1.96)) 
+```
+
+The bar chart is showcasing the data summarized into "olivia"project". The errors shown are the upper and lower bounds of each predictor variable's 95% confidence interval. 
+```{r}
+ggplot(olivia_project, aes(x = high_school_type, y = mean_depression)) + 
+    geom_bar(stat = "identity", fill = c("blue", "orange")) +
+    geom_errorbar(aes(ymin = lower_ci, 
+                      ymax = upper_ci), 
+                      width = 0.1) + 
+  labs(x = "Highschool Type", y = "Depression Frequency", 
+       title = "Depression (Private vs Public)")
+```
+
+## Statistics 
+Null hypothesis of this data should be that the mean depression of both highschool types should be the same.
+
+```{r}
+t.test(depression ~ high_school_type, data = olivia_project_, var.equal = TRUE)
+cohen.d(depression ~ high_school_type, data = olivia_project_,  paired = FALSE)
+```
+
+## Results 
+
+I have used a two tailed independent samples t-test to produce the statistics above. This is because I am comparing two groups to one measurement and want to know where my t-statistics (-2.569) falls within the sampling distribution of my data's null hypotheis (i.e does it fall within the 95%?). The alpha level is .05, the degrees of freedom is 416 aand the p-value of this sample t-test is 0.01. 
+
+The cohen's d of my data is estimated to be -0.25. This is the effect size between the two means of my data (depression in students from public highschools and depression in students from private highschools). This means that the difference between the two means is -.25 in standard deviation units. This difference is rather small and was statistically significant at an α of 0.05 (t= -2.569, df = 416, p < .005). 
+
+Because my t-statistic falls outside of the 95% confidence interval at -2.569, we can say that we can reject the null. The means of the two groups are not the same at all and we can be 95% confident that this is true. Based on what has been previously calculated about the depressions in both groups, we can be say that highschool type does affect depression (more so in those who previously came from public highschools). 
+
+
